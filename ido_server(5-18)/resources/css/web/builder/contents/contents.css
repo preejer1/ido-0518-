@@ -1,0 +1,50 @@
+@CHARSET "UTF-8";
+.build_shape, .build_image {
+  position: relative;
+}
+
+.build_image img{ 
+  width: 500px;
+  height: auto; 
+}
+
+/* 2. x버튼 */
+#delete {
+  position: relative;
+    width: 15px;
+    height: 15px;
+    left: 495px;
+    top: 5px;
+}
+
+/* 3. 이미지 출처 */
+
+.build_image_origin{
+  position: absolute;
+  width: 160px;
+  height: 16px;
+  right: -40px;
+  top: 0%; 
+  font-size: xx-small;
+}
+
+/* 4. 컨텐츠 내부 내용 작성부분 */
+.build_contents{
+  width: 497px;
+  height: 150px;
+  position: relative;
+}
+
+/* li부분 스타일 없애기 */
+ul{
+  list-style: none;
+  width: 500px;
+}
+
+#image{
+  {display:fixed; width:59px; height:40px; background:url('/img/join_photo_in.png') repeat 0 0; background-size:100% 100%; text-indent:-9990px; margin:20px 0;}
+}
+
+#add-survey{
+  display:fixed; width:120px; height:40px; background-size:100% 100%; margin:60px 0;
+}

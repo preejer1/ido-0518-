@@ -1,0 +1,920 @@
+
+<div class="wrap"> 
+  <div id="contentWrap"> 
+ 
+          <div class="title">
+              <p class="category">Food / Travel </p> 
+              <h1><%= data[0].TITLE %></h1> 
+              <p class="date"><%= data[0].REG_DATE %></p> 
+          </div> 
+          <!-- //title --> 
+
+          <div id="topimage"><img src="img/K-006.png" alt=""/></div> 
+          <!-- //topimage --> 
+
+          <div class="information"> 
+            <p class="editor"> editor </p> 
+            <ul>
+             <li> <span class="editor_name">박보검</span></li> 
+             <li class="bookname_m"> <a class="bookname">생활을 바꾸는 팁</a> </li> 
+             <li> <a href="#" class="subscript">구독하기</a></li> 
+            </ul>   
+
+
+            <div class="count_area"><span class="viewcount">170,230 view</span>
+            <ul> 
+             <li><img src="img/con_reply_icon.png"  alt="" />99999</li> 
+             <li><img src="img/con_like_icon.png"  alt="" />99999</li>
+             <li><img src="img/con_share_icon.png"  alt="" />99999</li>  
+            </ul> 
+            </div> 
+            <!-- //count_area --> 
+   
+          </div> 
+          <!-- //information --> 
+          <div class="profile"><img src="img/K-002.jpg" alt="" /></div>
+
+           
+ 
+       
+          <div class="content">
+            
+               
+               <div class="sns">
+
+               	 <ul> 
+               	 <li><a href="#" class="sns_facebook">페이스북</a></li>  
+               	 <li><a href="#" class="sns_twiteer">트위터</a></li>  
+				 <li><a href="#" class="sns_insta">인스타그램</a></li>  
+               	 <li><a href="#" class="sns_mail">메일</a></li>  
+                 <li><a href="#" class="sns_like">좋아요</a></li>  
+                </ul> 
+            
+               </div> 
+               	  
+                
+                <% for(i in data){ %>
+                  <div class="inputstyle">
+                  <div class="pic"><img src="<%= data[i].CONTENTS_IMAGE_PATH %>" alt="" /></div>
+                     <div class="txt"><%= data[i].CONTENTS %></div> 
+                  </div> 
+                <%} %> 
+                
+                <!-- 설문조사 썸네일 -->
+                <% data1.forEach(function(item, index) { %>
+                <div id="surveyTitleDiv" style="width:500px; margin:0 auto;">
+					<%if(data1!='') {%> 
+						<span style="font-size:1.1em; font-weight:700;">설문시작하기</span> 
+							<div><input type="text" id="surveyId" value="<%=item.SURVEY_ID%>"></div>
+							<div class="surveyThumbDiv">
+					   			<img class="surveyThumbnailImg" src="<%=item.SURVEY_THUMBNAIL %>" id="surveyThumbnailImg<%=index+1%>" style="width:500px; height:auto;">
+					   		</div>
+					   		<div class="surveyTitleDiv">
+					   			<span><%=item.SURVEY_TITLE %></span>
+					   		</div>
+					<%} %>
+				</div>
+                <!-- 설문조사 썸네일 -->
+                
+                <!-- 설문조사 팝업 -->
+                <div id="dialog-survey<%=index+1%>" title="IDO RESEARCH" style="display:none;">
+                	<div class="selectSurveyDiv" id="selectSurveyDiv<%=index+1%>">
+                	</div>
+                </div>
+                <%}); %>
+                <!-- 설문조사 팝업 -->
+
+<!-- survey css -->
+<style type="text/css">
+div[class*=contsDiv]{
+	opacity:0.6;
+}
+div[class*=contsDiv]:hover{
+	opacity:1.0;
+}
+</style>
+<style type="text/css">
+	input[type=checkbox]:after
+		{
+		  content: url(images/unchecked_after.gif);
+		  position:relative;
+		  left:0px;
+		  top:1px;
+		  z-index:100;
+		}
+</style>
+<link rel="stylesheet" type="text/css" href="css/web/builder/survey/result_survey.css">
+<script type="text/javascript" src="js/web/survey/surveyAnswer.js"></script>
+<script src="js/web/survey/amcharts.js" type="text/javascript"></script>
+<script src="js/web/survey/pie.js" type="text/javascript"></script>
+                
+<!-- survey js -->
+<script type="text/javascript">
+
+<% data1.forEach(function(item, index) { %>
+var dialog, form;
+
+dialog = $( "#dialog-survey<%=index+1%>" ).dialog({
+  	autoOpen: false,
+  	height: 700,
+  	width: 980,
+  	modal: true,
+  	buttons: {
+    	//"다음": updateTitle,
+    	"닫기": function() {
+    		$( "#dialog-survey<%=index+1%>" ).dialog( "close" );
+   		}
+	},
+	close: function() {
+		//컨텐츠 새창으로 다시 돌아가기
+    	//location.href="/upload/update_builder_contents?contentsId="+getUrlParameter('contentsId');
+		//데이터 초기화
+		$('.selectSurveyDiv').empty();
+		
+		$('#surveyThumbnailImg<%=index+1%>').unbind('onclick');
+		$('#surveyThumbnailImg<%=index+1%>').bind('onclick');
+		
+		//다음 버튼 초기화
+		$('#nextBtn').unbind('click');
+		$('#nextBtn').bind('click');
+		
+		//완료 버튼 초기화
+		$('#finishBtn').unbind('click');
+		$('#finishBtn').bind('click');
+  	}
+});
+
+	//function startSurvey(){
+	$('#surveyThumbnailImg<%=index+1%>').button().on('click',function(){
+		console.log('<%=index+1%>');
+		console.log('surveyId::'+$('#surveyId').val());
+		console.log('surveyId::<%=item.SURVEY_ID %>');
+		
+		$('#dialog-survey<%=index+1%>').dialog('open');
+		
+		$.ajax({
+			url : '/upload/listSurveySecondTitle?surveyId=<%=item.SURVEY_ID %>',
+			type : 'GET',
+			success : function(data){
+				console.log(data);
+				
+				//title 값 for
+				for(var i in data.title){
+					//i값 숫자로 변환
+					i = parseInt(i);  
+					
+					console.log('survey_type_id::'+data.title[i].SURVEY_TYPE_ID);
+					
+					//답변 타입 텍스트:1, 이미지:2
+					var answerType = data.title[i].SURVEY_ANSWER_TYPE;
+					
+					var idx=0;
+					
+					//첫번째 survey 
+					selectSurveyType(0, i);
+					
+					function selectSurveyType(idx, i){
+						if(i==idx){
+							//설문 유형 타입
+							var surveyType = data.title[i].SURVEY_TYPE;
+							if(surveyType=='1'){	//순위형
+								console.log('순위형 i::'+i);
+								var json = {title:data.title[i], reply:data.reply[i]};
+								//console.log(json);
+								rankingType(json, i);	
+							}else if(surveyType=='2'){	//별점형
+								var json = {title:data.title[i], reply:data.reply[i]};
+								gradeType(json, i);
+							}else if(surveyType=='3'){	//이중택일형
+								console.log('택일형 i::'+i);
+								var json = {title:data.title[i], reply:data.reply[i]};
+								chooseType(json, i);
+							}else if(surveyType=='4'){	//선택형
+								var json = {title:data.title[i], reply:data.reply[i]};
+								selectType(json, i);
+							}else if(surveyType=='5'){	//텍스트형
+								var json = {title:data.title[i], reply:data.reply[i]};
+								textType(json, i);
+							}//if
+						}//if
+					}//end function
+				}//for	
+				
+				console.log('뭐징??<%=index+1%>');
+				if(idx!=i){//마지막 설문이 아닐 때
+					$('#selectSurveyDiv<%=index+1%>').after('<div style="position:absolute; top:500px; margin-left:850px;"><input type="button" class="nextBtn" id="nextBtn" value="다음"></div><br/>');
+				}else if(idx==i){//마지막 설문일 때
+					$('#nextBtn').hide();
+					$('#selectSurveyDiv<%=index+1%>').after('<div style="position:absolute; top:500px; margin-left:850px;"><input type="button" class="finishBtn" id="finishBtn" value="완료"></div><br/>');
+				}//if
+				
+				//다음버튼 클릭시
+				$('#nextBtn').click(function(){
+					var surveyType = $('#surveyType'+(idx+1)).val();
+					
+					if(surveyType == 1){
+						inputRank('next', idx);
+					}else if(surveyType ==2){
+						inputStar('next', idx);
+					}else if(surveyType==4){
+						inputSelect('next', idx);
+					}
+					
+					idx += 1;
+					for(var j=1; j<=i; j++){
+						console.log('j::'+j);
+						selectSurveyType(idx, j);
+						//$('#surveyDiv'+(j-1)+'').hide();
+						//$('#nextBtn'+(j-1)+'').hide();
+						console.log('i::'+i);
+					}
+					if(idx==i){//마지막일 때
+						console.log('마지막값::');
+						$('#nextBtn').hide();
+						$('#selectSurveyDiv<%=index+1%>').after('<div style="position:absolute; top:500px; margin-left:850px;"><input type="button" class="finishBtn" id="finishBtn" value="완료"></div><br/>');
+					}//if
+					$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(idx)+'').hide();
+					
+					//완료버튼 클릭시
+					$('#finishBtn').click(function(){
+						var surveyType = $('#surveyType'+(idx+1)).val();
+						if(surveyType == 1){
+							inputRank('finish', idx);
+						}else if(surveyType==4){
+							inputSelect('finish', idx);
+						}
+					})
+				});	
+			},//end success
+			error : function(error){
+
+			}
+		});//end ajax	
+	});
+	//}
+
+	
+	
+	function rankingType(json, i){
+		console.log('순위형::');
+		//console.log(json.title);
+		//console.log(json.reply);
+		console.log('SURVEY_TYPE_ID::'+json.title.SURVEY_TYPE_ID);
+		console.log('SURVEY_TYPE::'+json.title.SURVEY_TYPE);
+		console.log('SURVEY_ANSWER_TYPE::'+json.title.SURVEY_ANSWER_TYPE);
+		console.log('SECOND_SURVEY_TITLE::'+json.title.SECOND_SURVEY_TITLE);
+		
+		//중질문 타이틀
+	 	var surveyTitleHtml = ''+
+	 					      '<form id="surveyForm'+(i+1)+'"><div id="surveyDiv'+(i+1)+'" class="surveyDiv" style="border:0px solid #000;">'+
+		 					  	'<input type="hidden" id="surveyAnswerType'+(i+1)+'" name="surveyAnswerType" value="'+json.title.SURVEY_ANSWER_TYPE+'">'+
+								'<input type="hidden" id="surveyTypeId'+(i+1)+'" name="surveyTypeId" value="'+json.title.SURVEY_TYPE_ID+'"/>'+
+								'<input type="hidden" id="surveyType'+(i+1)+'" name="surveyType" value="'+json.title.SURVEY_TYPE+'">'+
+								'<div class="surveyTypeDiv" style="font-size:1.2em; font-weight:700;"><span class="surveyTypeTxt"></span></div>'+
+	  							'<div class="surveyTitleDiv">'+
+	  								'<div class="titleSpan" id="titleSpan'+(i+1)+'" style="font-size: 25px; align:center;">'+json.title.SECOND_SURVEY_TITLE+'</div><br>'+
+	  								'<div class="btnLine"></div>'+
+	  							'</div>'+
+	  							'<div style="height:30px;"></div>'+
+	  							'<div class="surveySecondTitleDiv">'+
+	  								'<div class="second_titleSpan" id="titleSpan'+(i+1)+'" style="font-size: 20px; color:#ababab; align:center;">'+json.title.SECOND_SURVEY_TITLE+'</div><br>'+
+	  							'</div>'+
+	  							'<div style="height:35px"></div>'+
+	  							'<div class="contsContainer"></div>'+
+	  							'</form>';
+	  							
+	  					
+	  	<% data1.forEach(function(item, index) { %>
+	  	//중질문 타이틀 append						
+		$('#selectSurveyDiv<%=index+1%>').append(surveyTitleHtml);
+	  	console.log('순위형 뭘까????:<%=index+1%>');
+	  	<% }); %>
+	  							
+		for(var j in json.reply){
+			console.log('j : '+j);
+		  	//중질문 답변 						
+			var surveyReplyHtml =	'<div class="contsDiv'+(i+1)+'" id="contsDiv'+(i+1)+'_'+(j+1)+'">'+
+										'<input type="hidden" id="surveyContentsId'+(j+1)+'" name="surveyContentsId" value="'+json.reply[j].SURVEY_CONTENTS_ID+'">';
+									
+			if(json.title.SURVEY_ANSWER_TYPE=='1'){
+				surveyReplyHtml +=	//'<div></div>'+
+				  						'<div class="contsTxtDiv">'+
+					  						'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+				  						'</div>';
+	  		}
+	  		if(json.title.SURVEY_ANSWER_TYPE=='2'){
+	  			surveyReplyHtml +='<div class="img" name="rankCheckbox"  id="img'+(i+1)+'_'+(j+1)+'" style="content: url('+json.reply[j].SURVEY_IMAGE_PATH+'); width:160px; height:160px;">'+				'<input type="hidden" name="rank_sub_input'+(i+1)+'" id="sub_input_'+(i+1)+'_'+(j+1)+'" value="">'
+			  							'<div class="contsTxtDiv">'+
+			  								'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+			  							'</div>';	
+	  		}//if			
+	  					    		'</div>'; 		 				
+    		surveyReplyHtml += '</div>';
+			
+    		//중질문 답변 append
+			<% data1.forEach(function(item, index) { %>
+    		$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+' .contsContainer').append(surveyReplyHtml);
+    		<% }); %>
+
+    		switch(json.reply.length){
+    			case 2 :
+    				console.log('222222');
+    				$('div[class*="contsDiv"]').css({'padding-left':'110px'});  
+    			break;
+    			case 3 :
+    				console.log('333333');
+    				$('div[class*="contsDiv"]').css({'padding-left':'45px'});
+    			break;
+    		}
+		}//for
+		
+
+		
+		var clickCount = 0;
+		$('div[id*=img'+(i+1)+']').click(function(){
+			clickCount++;
+			var matches = 1;
+			var id = $(this).attr('id').split('img'+(i+1)+'_')[1];
+			var rankValue = 1;
+			console.log('count : '+clickCount)
+			if(clickCount > 2){ //2개 이상 선택시
+				if($('#sub_input_'+(i+1)+'_'+id).val()=='1' || $('#sub_input_'+(i+1)+'_'+id).val()=='2'){ //만약 2개이상 클릭시인데 1위 2위를 다시 클릭시 0으로 만듬.
+					$('#sub_input_'+(i+1)+'_'+id).val('0');
+					clickCount = 1;
+				}else{ // 1 2위를 제외한 나머지 이미지 클릭시 alert
+					alert('이미 두개를 선택하셨습니다.')
+				}
+			}else{ // 2개 아래로 선택시
+				$("input[id*=sub_input_"+(i+1)+"]").each(function(index, val) { // 1위가 선택되어있으면 2등의 값을 제공한다.
+					if ($('input[name="rank_sub_input'+(i+1)+'"]').eq(index).val() == '1') {
+						rankValue = 2;
+					}
+				});
+				if($('#sub_input_'+(i+1)+'_'+id).val()=='1' || $('#sub_input_'+(i+1)+'_'+id).val()=='2'){
+					$('#sub_input_'+(i+1)+'_'+id).val('0');
+				}else{
+					$('#sub_input_'+(i+1)+'_'+id).val(rankValue);
+					 
+					$('#sub_input_'+(i+1)+'_'+id).parent().wrap('<div id="rankWrap'+id+'" style="content : url(images/common/builder/survey/'+rankValue+'.png); width:160px; height:160px;"></div>');
+				}	
+			}
+
+			var wrapCount = 0;
+			//순위 수정을 원할때 unwrap해주는 function
+			$('div[id*=rankWrap]').click(function(){
+				wrapCount++;
+				if(wrapCount == 2){
+					clickCount = 0;
+				}else{
+					clickCount = 1;
+				}
+				var rankWrapId = $(this).attr('id').split('rankWrap')[1];
+				
+				$('#sub_input_'+(i+1)+'_'+rankWrapId).val('0');
+				
+				$(this).children().unwrap();
+			})
+		})
+	}
+	
+	function gradeType(json, i){
+		console.log('별점형::');
+		
+		console.log('SURVEY_TYPE_ID::'+json.title.SURVEY_TYPE_ID);
+		console.log('SURVEY_TYPE::'+json.title.SURVEY_TYPE);
+		console.log('SURVEY_ANSWER_TYPE::'+json.title.SURVEY_ANSWER_TYPE);
+		console.log('SECOND_SURVEY_TITLE::'+json.title.SECOND_SURVEY_TITLE);
+		
+		//중질문 타이틀
+	 	var surveyTitleHtml = ''+
+	 					      '<div id="surveyDiv'+(i+1)+'" class="surveyDiv" style="border:0px solid #000;">'+
+		 					  	'<input type="hidden" id="surveyAnswerType'+(i+1)+'" name="surveyAnswerType" value="'+json.title.SURVEY_ANSWER_TYPE+'">'+
+								'<input type="hidden" id="surveyTypeId'+(i+1)+'" name="surveyTypeId" value="'+json.title.SURVEY_TYPE_ID+'"/>'+
+								'<input type="hidden" id="surveyType'+(i+1)+'" name="surveyType" value="'+json.title.SURVEY_TYPE+'">'+
+								'<div class="surveyTypeDiv" style="font-size:1.2em; font-weight:700;"><span class="surveyTypeTxt">별점형</span></div>'+
+	  							'<div class="surveyTitleDiv">'+
+	  								'<span class="titleSpan" id="titleSpan'+(i+1)+'" style="font-weight:700;">'+json.title.SECOND_SURVEY_TITLE+'</span>'+
+	  							'</div>'+
+	  							'';
+	  							
+	  	<% data1.forEach(function(item, index) { %>	  							
+		//중질문 타이틀 append						
+		$('#selectSurveyDiv<%=index+1%>').append(surveyTitleHtml);
+	  	console.log('별점형 뭘까????:<%=index+1%>');
+	  	<% }); %>
+	  							
+		for(var j in json.reply){
+			j = parseInt(j);
+			console.log('j::'+j);
+			console.log(json.reply[j].SURVEY_CONTENTS_ID);
+			console.log(json.reply[j].SURVEY_CONTENTS);
+			console.log(json.reply[j].SURVEY_IMAGE_PATH);
+			
+		  	//중질문 답변 						
+			var surveyReplyHtml =	'<div class="contsDiv'+(i+1)+'" id="contsDiv'+(i+1)+'_'+(j+1)+'">'+
+										'<input type="hidden" id="surveyContentsId'+(j+1)+'" name="surveyContentsId" value="'+json.reply[j].SURVEY_CONTENTS_ID+'">';
+									
+			if(json.title.SURVEY_ANSWER_TYPE=='1'){
+				surveyReplyHtml +=	//'<div></div>'+
+				  						'<div class="contsTxtDiv">'+
+					  						'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+				  						'</div>';
+	  		}
+	  		if(json.title.SURVEY_ANSWER_TYPE=='2'){
+	  			surveyReplyHtml +=	
+			  							'<img class="img" src="'+json.reply[j].SURVEY_IMAGE_PATH+'" id="img'+(i+1)+'_'+(j+1)+'" style="width:200px; height:160px;"/>'+
+			  							'<div class="contsTxtDiv">'+
+			  								'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+			  							'</div>';	
+	  		}//if			
+	  					    		'</div>'; 		 				
+    		surveyReplyHtml += '</div>';
+			
+    		//중질문 답변 append
+			<% data1.forEach(function(item, index) { %>
+    		$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+'').append(surveyReplyHtml);
+    		<% }); %>
+		}//for
+		
+		//$('.selectSurveyDiv').append('<div><input type="button" class="nextBtn" id="nextBtn'+(i+1)+'" value="다음"></div><br/>');
+			
+	}
+	
+	function chooseType(json, i){
+		console.log('이중택일형::');
+		
+		console.log('SURVEY_TYPE_ID::'+json.title.SURVEY_TYPE_ID);
+		console.log('SURVEY_TYPE::'+json.title.SURVEY_TYPE);
+		console.log('SURVEY_ANSWER_TYPE::'+json.title.SURVEY_ANSWER_TYPE);
+		console.log('SECOND_SURVEY_TITLE::'+json.title.SECOND_SURVEY_TITLE);
+		
+		//중질문 타이틀
+	 	var surveyTitleHtml = ''+
+	 					      '<div id="surveyDiv'+(i+1)+'" class="surveyDiv" style="border:0px solid #000;">'+
+		 					  	'<input type="hidden" id="surveyAnswerType'+(i+1)+'" name="surveyAnswerType" value="'+json.title.SURVEY_ANSWER_TYPE+'">'+
+								'<input type="hidden" id="surveyTypeId'+(i+1)+'" name="surveyTypeId" value="'+json.title.SURVEY_TYPE_ID+'"/>'+
+								'<input type="hidden" id="surveyType'+(i+1)+'" name="surveyType" value="'+json.title.SURVEY_TYPE+'">'+
+								'<div class="surveyTypeDiv" style="font-size:1.2em; font-weight:700;"><span class="surveyTypeTxt">이중택일형</span></div>'+
+	  							'<div class="surveyTitleDiv">'+
+	  								'<span class="titleSpan" id="titleSpan'+(i+1)+'" style="font-weight:700;">'+json.title.SECOND_SURVEY_TITLE+'</span>'+
+	  							'</div>'+
+	  							'';
+	  					
+	  	<% data1.forEach(function(item, index) { %>
+		//중질문 타이틀 append						
+		$('#selectSurveyDiv<%=index+1%>').append(surveyTitleHtml);
+	  	console.log('택일형 뭘까????:<%=index+1%>');
+	  	<% });%>
+	  							
+		for(var j in json.reply){
+			j = parseInt(j);
+			console.log('j::'+j);
+			console.log(json.reply[j].SURVEY_CONTENTS_ID);
+			console.log(json.reply[j].SURVEY_CONTENTS);
+			console.log(json.reply[j].SURVEY_IMAGE_PATH);
+			
+			viewConts();
+			if(j>=2){
+				<% data1.forEach(function(item, index) { %>
+					$('#selectSurveyDiv<%=index+1%> #contsDiv'+(i+1)+'_'+(j+1)+'').hide();
+				<% }); %>
+			}
+			/* 
+			else if(j>=2){
+    			//continue;
+				/* <% data1.forEach(function(item, index) { %>
+				$('#selectSurveyDiv<%=index+1%> #contsDiv'+(i+1)+'_'+(j+1)+'').hide();
+				<% });%>
+			}//if
+ 			*/
+ 			
+ 			
+    		 
+    		function viewConts(){
+			  	//중질문 답변 						
+				var surveyReplyHtml =	'<span class="contsDiv'+(i+1)+'" id="contsDiv'+(i+1)+'_'+(j+1)+'" style="float:left; padding:0 20px 0 0; ">'+
+											'<input type="hidden" id="surveyContentsId'+(j+1)+'" name="surveyContentsId" value="'+json.reply[j].SURVEY_CONTENTS_ID+'">';
+										
+				if(json.title.SURVEY_ANSWER_TYPE=='1'){
+					surveyReplyHtml +=		''+
+					  						'<span class="contsTxtDiv">'+
+						  						'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+					  						'</span>'+
+					  						'';
+		  		}else if(json.title.SURVEY_ANSWER_TYPE=='2'){
+		  			surveyReplyHtml +=		''+
+		  									'<a href="#" class="choiceAtag" id="choiceAtag">'+
+				  							'<img class="img" src="'+json.reply[j].SURVEY_IMAGE_PATH+'" id="img'+(i+1)+'_'+(j+1)+'" style="width:200px; height:160px;"/>'+
+				  							'<p class="contsTxtDiv" style="text-align:center;">'+
+				  								'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+				  							'</p>'+
+				  							'</a>'+
+				  							'';	
+		  		}//if			
+		  					    		'</span>'; 		 				
+		  					    		
+    			surveyReplyHtml += '</div>';
+    			
+    			<% data1.forEach(function(item, index) { %>
+    			//중질문 답변 append
+        		$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+'').append(surveyReplyHtml);
+    			<% }); %>
+			}
+		}//for
+		
+		<% data1.forEach(function(item, index) { %>
+			//중질문 답변 append
+			//$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+'').append(surveyReplyHtml);
+			
+			//선택한 답변 배열 선언
+			var choiceContsArr = new Array();
+			
+			//시작idx와 끝idx 선언
+			var startIdx = 0;
+			var endIdx = 2;
+			
+			//답변 클릭시 function
+			$('#selectSurveyDiv<%=index+1%> .contsDiv'+(i+1)+'').click(function(){
+				console.log('이중택일 답변 클릭!!');	
+				console.log($(this).attr('id'));
+				
+				//답변 클릭시 반투명도 줌
+				var choiceContsDiv = $(this).attr('id'); 
+				//$('#'+choiceContsDiv+' #choiceAtag').css('opacity','1.0');
+				
+				//선택한 답변 push
+				choiceContsArr.push(choiceContsDiv);
+				console.log(choiceContsArr);
+				
+				startIdx += 2;
+				endIdx += 2;
+				
+				for(var j in json.reply){
+					j = parseInt(j);
+					
+					console.log('startIdx::'+startIdx);
+					console.log('endIdx::'+endIdx);
+					if(j>=startIdx && j<endIdx){
+						console.log('contSClick  j::'+j);
+						//viewConts();
+						//<% data1.forEach(function(item, index) { %>
+						$('.selectSurveyDiv #contsDiv'+(i+1)+'_'+(j+1)+'').show();
+						//<% }); %>
+						//viewConts();
+					}else{
+						$('.selectSurveyDiv #contsDiv'+(i+1)+'_'+(j+1)+'').hide();
+						//console.log($('#surveyDiv'+(i+1)+' span[class*=contsDiv]').css('display','none'));
+						//console.log('json.reply.length::'+json.reply.length);
+						
+						if($('#surveyDiv'+(i+1)+' .contsDiv'+(i+1)+'').css('display') != 'block'){
+							for(var no in choiceContsArr){
+								no = parseInt(no);
+								
+								var choiceContsDiv = choiceContsArr[no];
+								
+								//택일형의 답변 갯수가 4개일 때
+								if(json.reply.length==4){
+									if(choiceContsArr.length==2){
+										console.log('choiceContsDiv::'+choiceContsDiv);
+										$('.selectSurveyDiv  #'+choiceContsDiv+'').show();
+										//$('.selectSurveyDiv  #contsDiv2_4').show();
+									}//if
+								}//if
+								
+								//택일형의 답변 갯수가 8개일 때
+								if(json.reply.length==8){
+									if(choiceContsArr.length==4){
+										console.log('choiceContsDiv::'+choiceContsDiv);
+										$('.selectSurveyDiv  #'+choiceContsDiv+'').show();
+									}//if
+								}//if
+							}//for
+						}//if
+						
+					}//if
+					
+				}//for
+			});
+		<% }); %>
+		
+		//$('.selectSurveyDiv').append('<div><input type="button" class="nextBtn" id="nextBtn'+(i+1)+'" value="다음"></div><br/>');
+	}
+	
+	
+	
+	function selectType(json, i){
+
+		console.log('선택형::');
+		//console.log(json.title);
+		//console.log(json.reply);
+		console.log('SURVEY_TYPE_ID::'+json.title.SURVEY_TYPE_ID);
+		console.log('SURVEY_TYPE::'+json.title.SURVEY_TYPE);
+		console.log('SURVEY_ANSWER_TYPE::'+json.title.SURVEY_ANSWER_TYPE);
+		console.log('SECOND_SURVEY_TITLE::'+json.title.SECOND_SURVEY_TITLE);
+		
+		//중질문 타이틀
+	 	var surveyTitleHtml = ''+
+	 					      '<form id="surveyForm'+(i+1)+'"><div id="surveyDiv'+(i+1)+'" class="surveyDiv" style="border:0px solid #000;">'+
+		 					  	'<input type="hidden" id="surveyAnswerType'+(i+1)+'" name="surveyAnswerType" value="'+json.title.SURVEY_ANSWER_TYPE+'">'+
+								'<input type="hidden" id="surveyTypeId'+(i+1)+'" name="surveyTypeId" value="'+json.title.SURVEY_TYPE_ID+'"/>'+
+								'<input type="hidden" id="surveyType'+(i+1)+'" name="surveyType" value="'+json.title.SURVEY_TYPE+'">'+
+								'<div class="surveyTypeDiv" style="font-size:1.2em; font-weight:700;"><span class="surveyTypeTxt">선택형</span></div>'+
+	  							'<div class="surveyTitleDiv">'+
+	  								'<span class="titleSpan" id="titleSpan'+(i+1)+'" style="font-weight:700;">'+json.title.SECOND_SURVEY_TITLE+'</span>'+
+	  							'</div></form>'+
+	  							'';
+	  					
+	  	<% data1.forEach(function(item, index) { %>
+	  	//중질문 타이틀 append						
+		$('#selectSurveyDiv<%=index+1%>').append(surveyTitleHtml);
+	  	<% }); %>
+	  							
+		for(var j in json.reply){
+			j = parseInt(j);
+			console.log('j::'+j);
+			console.log(json.reply[j].SURVEY_CONTENTS_ID);
+			console.log(json.reply[j].SURVEY_CONTENTS);
+			console.log(json.reply[j].SURVEY_IMAGE_PATH);
+			
+		  	//중질문 답변 						
+			var surveyReplyHtml =	'<div class="contsDiv'+(i+1)+'" id="contsDiv'+(i+1)+'_'+(j+1)+'" name="contsDiv'+(i+1)+'_s'+(j+1)+'">'+
+										'<input type="hidden" id="surveyContentsId'+(j+1)+'" name="surveyContentsId" value="'+json.reply[j].SURVEY_CONTENTS_ID+'">';
+									
+			if(json.title.SURVEY_ANSWER_TYPE=='1'){
+				surveyReplyHtml +=	//'<div></div>'+
+				  						'<div class="contsTxtDiv">'+
+					  						'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+				  						'</div>';
+	  		}
+	  		if(json.title.SURVEY_ANSWER_TYPE=='2'){
+	  			surveyReplyHtml +='<div class="img" name="selectCheckbox"  id="select_img'+(i+1)+'_'+(j+1)+'" style="content: url('+json.reply[j].SURVEY_IMAGE_PATH+'); width:160px; height:160px;">'+				'<input type="hidden" name="select_sub_input'+(i+1)+'" id="select_sub_input_'+(i+1)+'_'+(j+1)+'" value="">'
+			  							'<div class="contsTxtDiv">'+
+			  								'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+			  							'</div>';	
+	  		}//if			
+	  					    		'</div>'; 		 				
+    		surveyReplyHtml += '</div>';
+			
+    		//중질문 답변 append
+			<% data1.forEach(function(item, index) { %>
+    		$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+'').append(surveyReplyHtml);
+    		<% }); %>
+
+			console.log('???????????????????? : '+$('div[name$=_s4]').attr('id'));
+			switch(json.reply.length){
+    			case 2 :
+    				console.log('222222');
+    				$('div[class*="contsDiv"]').css({'padding-left':'110px'});  
+    			break;
+    			case 3 :
+    				console.log('333333');
+    				$('div[class*="contsDiv"]').css({'padding-left':'45px'});
+    			break;
+    			case 4 :
+    				console.log('444444');
+    				$('div[class*="contsDiv"]').css({'padding-left':'25px'});
+    			break;
+    			case 5 :
+    				console.log('555555');
+    				$('div[class*="contsDiv"]').css({'padding-left':'15px'});
+    				$('div[name$=_s4]').css({'padding-left':'105px','padding-top':'20px'});
+    				$('div[name$=_s5]').css({'padding-top':'20px'});
+    			break;
+    			case 6 :
+    				console.log('666666');
+    				$('div[class*="contsDiv"]').css({'padding-left':'35px'});
+    			break;
+    		}
+
+		}//for
+		
+
+		$('div[id*=select_img'+(i+1)+']').click(function(){
+			var id = $(this).attr('id').split('img'+(i+1)+'_')[1];
+			
+			console.log('id : '+id);
+			if($('#select_sub_input_'+(i+1)+'_'+id).val()=='1'){
+				$('#select_sub_input_'+(i+1)+'_'+id).val('0');
+			}else{
+				$('#select_sub_input_'+(i+1)+'_'+id).val('1');
+				$('#select_sub_input_'+(i+1)+'_'+id).parent().wrap('<div id="selectWrap'+id+'" style="content : url(images/common/builder/survey/check_img2.png); width:160px; height:160px;"></div>');
+			}
+
+
+		$('div[id*=selectWrap]').click(function(){
+			var selectWrap = $(this).attr('id').split('selectWrap')[1];
+			
+			$('#select_sub_input_'+(i+1)+'_'+selectWrap).val('0');
+			
+			$(this).children().unwrap();
+		})
+
+			
+		})
+	}
+	
+	function textType(json, i){
+		console.log('텍스트형::');
+		
+		console.log('SURVEY_TYPE_ID::'+json.title.SURVEY_TYPE_ID);
+		console.log('SURVEY_TYPE::'+json.title.SURVEY_TYPE);
+		console.log('SURVEY_ANSWER_TYPE::'+json.title.SURVEY_ANSWER_TYPE);
+		console.log('SECOND_SURVEY_TITLE::'+json.title.SECOND_SURVEY_TITLE);
+		
+		//중질문 타이틀
+	 	var surveyTitleHtml = ''+
+	 					      '<div id="surveyDiv'+(i+1)+'" class="surveyDiv" style="border:0px solid #000;">'+
+		 					  	'<input type="hidden" id="surveyAnswerType'+(i+1)+'" name="surveyAnswerType" value="'+json.title.SURVEY_ANSWER_TYPE+'">'+
+								'<input type="hidden" id="surveyTypeId'+(i+1)+'" name="surveyTypeId" value="'+json.title.SURVEY_TYPE_ID+'"/>'+
+								'<input type="hidden" id="surveyType'+(i+1)+'" name="surveyType" value="'+json.title.SURVEY_TYPE+'">'+
+								'<div class="surveyTypeDiv" style="font-size:1.2em; font-weight:700;"><span class="surveyTypeTxt">텍스트형</span></div>'+
+	  							'<div class="surveyTitleDiv">'+
+	  								'<span class="titleSpan" id="titleSpan'+(i+1)+'" style="font-weight:700;">'+json.title.SECOND_SURVEY_TITLE+'</span>'+
+	  							'</div>'+
+	  							'';
+	  							
+	  	<% data1.forEach(function(item, index) { %>	  					
+		//중질문 타이틀 append						
+		$('#selectSurveyDiv<%=index+1%>').append(surveyTitleHtml);
+	  	console.log('텍스트형 뭘까????:<%=index+1%>');
+	  	<% }); %>
+	  							
+		for(var j in json.reply){
+			j = parseInt(j);
+			console.log('j::'+j);
+			console.log(json.reply[j].SURVEY_CONTENTS_ID);
+			console.log(json.reply[j].SURVEY_CONTENTS);
+			console.log(json.reply[j].SURVEY_IMAGE_PATH);
+			
+		  	//중질문 답변 						
+			var surveyReplyHtml =	'<div class="contsDiv'+(i+1)+'" id="contsDiv'+(i+1)+'_'+(j+1)+'">'+
+										'<input type="hidden" id="surveyContentsId'+(j+1)+'" name="surveyContentsId" value="'+json.reply[j].SURVEY_CONTENTS_ID+'">';
+									
+			if(json.title.SURVEY_ANSWER_TYPE=='1'){
+				surveyReplyHtml +=	//'<div></div>'+
+				  						'<div class="contsTxtDiv">'+
+					  						'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+				  						'</div>';
+	  		}
+	  		if(json.title.SURVEY_ANSWER_TYPE=='2'){
+	  			surveyReplyHtml +=	
+			  							'<img class="img" src="'+json.reply[j].SURVEY_IMAGE_PATH+'" id="img'+(i+1)+'_'+(j+1)+'" style="width:200px; height:160px;"/>'+
+			  							'<div class="contsTxtDiv">'+
+			  								'<span class="contsTxtSpan" id="contentsSpan'+(i+1)+'_'+(j+1)+'" >'+json.reply[j].SURVEY_CONTENTS+'</span>'+
+			  							'</div>';	
+	  		}//if			
+	  					    		'</div>'; 		 				
+    		surveyReplyHtml += '</div>';
+			
+    		//중질문 답변 append
+			<% data1.forEach(function(item, index) { %>
+    		$('#selectSurveyDiv<%=index+1%> #surveyDiv'+(i+1)+'').append(surveyReplyHtml);
+    		<% }); %>
+		}//for
+		
+		//$('.selectSurveyDiv').append('<div><input type="button" class="nextBtn" id="nextBtn'+(i+1)+'" value="다음"></div><br/>');
+	}
+<%}); %>
+</script>
+          <!-- 댓글시작 --> 
+        
+            <div class="replywrap"> 
+              
+               <img src="img/reply_icon.png" alt=""/> <span class="replytitle"> 댓글쓰기</span> <span class="replytx">타인을 배려하는 마음을 담아 댓글을 달아주세요. </span> 
+
+
+
+                  <div class="writewrap"> 
+
+                  	   <div class="writer">
+                  	      <div class="reprofile"><img src="img/pro_test.jpg" alt="" /></div>
+                  	   </div> 
+
+
+                  	   <div class="contents">
+                  	        <textarea>ssd</textarea><button class="resubmit"></button> 
+                  	        <div class="chcount"> <span class="chcounttx">0</span> / 200 </div> 
+                  	   </div> 
+ 
+                  </div> 
+
+
+                  <!-- replylist --> 
+                  <div class="replylist"> 
+                         
+                       <div class="writerarea"><div class="reprofile"><img src="img/pro_test.jpg" alt="" /></div></div> 
+                       <div class="rightcon">
+                         
+                         <div class="likearea"> 
+                         	 <div class="report"><a href="">신고하기</a></div>
+                         	 <div class="like"><a href=""><img src="img/reply_like.png" alt="" /><span class="likecount">0</span></a></div>
+                         	 
+                         
+                         </div> 
+
+
+                       	 <img src="img/reply_best_icon.png" alt=""/> <span class="nickname">안녕하새오새애오</span><span class="replydate">2016.03.24 23:30 </span> 
+                         
+                       	  <div class="contents">
+                       	  	 강준이 나홀로 연애중 보고 입덕 하늘재 살인사건 도 진심 꼭봐야되요ㅠㅠㅠ 내용내용내용내용내용내용 
+                       	  	 내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용
+                       	  	 내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용
+                       	  </div> 
+                       	  <!-- //contents -->
+
+                        </div> 
+                        <!-- //rightcon --> 
+                                       
+
+                  </div>
+                  <!-- //replylist --> 
+
+                 <!-- replylist --> 
+                  <div class="replylist"> 
+                         
+                       <div class="writerarea"><div class="reprofile"><img src="img/pro_test.jpg" alt="" /></div></div> 
+                       <div class="rightcon">
+                         
+                         <div class="likearea"> 
+                         	 <div class="report"><a href="">신고하기</a></div>
+                         	 <div class="like"><a href=""><img src="img/reply_like.png" alt="" /><span class="likecount">0</span></a></div>
+                         	 
+                         
+                         </div> 
+
+
+                       	 <img src="img/reply_best_icon.png" alt=""/> <span class="nickname">안녕하새오새애오</span><span class="replydate">2016.03.24 23:30 </span> 
+
+                       	  <div class="contents">
+                     	  	  
+                       	  	 내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용내용
+                       	  </div> 
+                       	  <!-- //contents -->
+
+                        </div> 
+                        <!-- //rightcon --> 
+                                       
+
+                  </div>
+                  <!-- //replylist --> 
+
+                                   <!-- replylist --> 
+                  <div class="replylist"> 
+                         
+                       <div class="writerarea"><div class="reprofile"><img src="img/pro_test.jpg" alt="" /></div></div> 
+                       <div class="rightcon">
+                         
+                         <div class="likearea"> 
+                         	 <div class="report"><a href="">신고하기</a></div>
+                         	 <div class="like"><a href=""><img src="img/reply_like.png" alt="" /><span class="likecount">0</span></a></div>
+                         	 
+                         
+                         </div> 
+
+
+                       	 <img src="img/reply_best_icon.png" alt=""/> <span class="nickname">안녕하새오새애오</span><span class="replydate">2016.03.24 23:30 </span> 
+
+                       	  <div class="contents">
+                       	  	 류배유님 ㅠㅠ	
+                       	  </div> 
+                       	  <!-- //contents -->
+
+                        </div> 
+                        <!-- //rightcon --> 
+                                       
+
+                  </div>
+                  <!-- //replylist --> 
+
+
+
+
+                   
+
+
+
+             
+
+            </div>
+            <!-- //replywrap--> 
+               
+            
+
+          <!-- //댓글 끝--> 
+
+
+
+          </div> 
+          <!-- //content -->        
+                
+      
+ 
+
+  </div> 
+  <!-- //contentWrap --> 
+
+
+
+
+
+</div> 
